@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"goworkflow/pkg/parser"
+	"goworkflow/pkg/parse"
 	"goworkflow/pkg/types"
 	"goworkflow/pkg/util"
 
@@ -12,15 +12,15 @@ import (
 )
 
 // NewXMLParser xml解析器
-func NewXMLParser() parser.Parser {
+func NewXMLParser() parse.Parser {
 	return &xmlParser{}
 }
 
 type xmlParser struct {
 }
 
-func (p *xmlParser) Parse(ctx context.Context, content []byte) (*parser.ParseResult, error) {
-	result := &parser.ParseResult{
+func (p *xmlParser) Parse(ctx context.Context, content []byte) (*parse.ParseResult, error) {
+	result := &parse.ParseResult{
 		FlowStatus: 2,
 	}
 	var err error
@@ -54,7 +54,7 @@ func (p *xmlParser) Parse(ctx context.Context, content []byte) (*parser.ParseRes
 	}
 
 	// 定义一个用于辅助的map，由节点id映射到noderesult
-	nodeMap := make(map[string]*parser.NodeResult)
+	nodeMap := make(map[string]*parse.NodeResult)
 	// 遍历找到所有的节点，因为是解析一个树，所以先解析节点，再解析sequenceFlow部分
 	// 解析sequenceFlow部分时，nodeMap里面应该已经有对应的nodeId了
 	for _, element := range process.ChildElements() {
@@ -64,7 +64,7 @@ func (p *xmlParser) Parse(ctx context.Context, content []byte) (*parser.ParseRes
 			continue
 		}
 		node, _ := p.ParseNode(element)
-		var nodeResult parser.NodeResult
+		var nodeResult parse.NodeResult
 		nodeResult.NodeID = node.Code
 		nodeResult.NodeName = node.Name
 		nodeResult.NodeType, err = types.GetNodeTypeByName(node.Type)
@@ -82,7 +82,7 @@ func (p *xmlParser) Parse(ctx context.Context, content []byte) (*parser.ParseRes
 	for _, element := range process.ChildElements() {
 		if element.Tag == "sequenceFlow" {
 			sequenceFlow, _ := p.ParsesequenceFlow(element)
-			var routerResult parser.RouterResult
+			var routerResult parse.RouterResult
 			routerResult.Expression = sequenceFlow.Expression
 			routerResult.Explain = sequenceFlow.Explain
 			routerResult.TargetNodeID = sequenceFlow.TargetRef
@@ -119,7 +119,7 @@ func (p *xmlParser) ParseNode(element *etree.Element) (*nodeInfo, error) {
 		node.CandidateUsers = []string{candidateUsers.Value}
 	}
 
-	nodeFormResult := new(parser.NodeFormResult)
+	nodeFormResult := new(parse.NodeFormResult)
 	if formKey := element.SelectAttr("formKey"); formKey != nil {
 		nodeFormResult.ID = formKey.Value
 	}
@@ -138,7 +138,7 @@ func (p *xmlParser) ParseNode(element *etree.Element) (*nodeInfo, error) {
 		if propertyData := extensionElements.SelectElement("properties"); propertyData != nil {
 			// 解析节点属性
 			for _, p := range propertyData.SelectElements("property") {
-				var item parser.PropertyResult
+				var item parse.PropertyResult
 				if name := p.SelectAttr("name"); name != nil {
 					item.Name = name.Value
 				}
@@ -177,15 +177,15 @@ func (p *xmlParser) ParsesequenceFlow(element *etree.Element) (*sequenceFlow, er
 	return &seq, nil
 }
 
-func (p *xmlParser) ParseFormData(element *etree.Element) (*parser.NodeFormResult, error) {
-	var formResult = &parser.NodeFormResult{}
+func (p *xmlParser) ParseFormData(element *etree.Element) (*parse.NodeFormResult, error) {
+	var formResult = &parse.NodeFormResult{}
 	if id := element.SelectAttr("id"); id != nil {
 		formResult.ID = id.Value
 	}
 
 	if fieldList := element.SelectElements("formField"); fieldList != nil {
 		for _, item := range fieldList {
-			var field = &parser.FormFieldResult{}
+			var field = &parse.FormFieldResult{}
 			var err error
 			if properties := item.SelectElement("properties"); properties != nil {
 				field.Properties, err = p.ParseProperties(properties)
@@ -224,11 +224,11 @@ func (p *xmlParser) ParseFormData(element *etree.Element) (*parser.NodeFormResul
 	return formResult, nil
 }
 
-func (p *xmlParser) ParseProperties(element *etree.Element) ([]*parser.FieldProperty, error) {
-	var properties = make([]*parser.FieldProperty, 0)
+func (p *xmlParser) ParseProperties(element *etree.Element) ([]*parse.FieldProperty, error) {
+	var properties = make([]*parse.FieldProperty, 0)
 	if propertyList := element.SelectElements("property"); propertyList != nil {
 		for _, item := range propertyList {
-			var property = &parser.FieldProperty{}
+			var property = &parse.FieldProperty{}
 			if id := item.SelectAttr("id"); id != nil {
 				property.ID = id.Value
 			}
@@ -241,11 +241,11 @@ func (p *xmlParser) ParseProperties(element *etree.Element) ([]*parser.FieldProp
 	return properties, nil
 }
 
-func (p *xmlParser) ParseValidations(element *etree.Element) ([]*parser.FieldValidation, error) {
-	var validations = make([]*parser.FieldValidation, 0)
+func (p *xmlParser) ParseValidations(element *etree.Element) ([]*parse.FieldValidation, error) {
+	var validations = make([]*parse.FieldValidation, 0)
 	if validationList := element.SelectElements("constraint"); validationList != nil {
 		for _, item := range validationList {
-			var validation = &parser.FieldValidation{}
+			var validation = &parse.FieldValidation{}
 			if name := item.SelectAttr("name"); name != nil {
 				validation.Name = name.Value
 			}
@@ -258,11 +258,11 @@ func (p *xmlParser) ParseValidations(element *etree.Element) ([]*parser.FieldVal
 	return validations, nil
 }
 
-func (p *xmlParser) ParseEnumValues(element *etree.Element) ([]*parser.FieldOption, error) {
-	var options = make([]*parser.FieldOption, 0)
+func (p *xmlParser) ParseEnumValues(element *etree.Element) ([]*parse.FieldOption, error) {
+	var options = make([]*parse.FieldOption, 0)
 	if optionList := element.SelectElements("value"); optionList != nil {
 		for _, item := range optionList {
-			var option = &parser.FieldOption{}
+			var option = &parse.FieldOption{}
 			if id := item.SelectAttr("id"); id != nil {
 				option.ID = id.Value
 			}
@@ -281,8 +281,8 @@ type nodeInfo struct {
 	Code           string
 	Name           string
 	CandidateUsers []string
-	Properties     []*parser.PropertyResult
-	FormResult     *parser.NodeFormResult
+	Properties     []*parse.PropertyResult
+	FormResult     *parse.NodeFormResult
 }
 
 type sequenceFlow struct {
