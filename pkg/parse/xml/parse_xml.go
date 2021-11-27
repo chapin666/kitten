@@ -11,12 +11,12 @@ import (
 	"github.com/beevik/etree"
 )
 
+type xmlParser struct {
+}
+
 // NewXMLParser xml解析器
 func NewXMLParser() parse.Parser {
 	return &xmlParser{}
-}
-
-type xmlParser struct {
 }
 
 func (p *xmlParser) Parse(ctx context.Context, content []byte) (*parse.ParseResult, error) {
@@ -30,22 +30,34 @@ func (p *xmlParser) Parse(ctx context.Context, content []byte) (*parse.ParseResu
 		panic(err)
 	}
 
+	// definitions
 	root := doc.SelectElement("definitions")
-	//root.Tag
+
+	// process
+	//id：流程定义ID，代表该流程的唯一性，启动该流程时需要使用该ID
+	//isExecutable：表示该流程是否可执行，其值有true和false，默认为true
+	//name：流程名称
+	//type：流程类型
+	//isClosed：流程是否已关闭,关闭不能执行
+	//versionTag：版本号
 	process := root.SelectElement("process")
 
+	// process id property
 	if id := process.SelectAttr("id"); id != nil {
 		result.FlowID = id.Value
 	}
+	// process name property
 	if name := process.SelectAttr("name"); name != nil {
 		result.FlowName = name.Value
 	}
+	// process isExecutable property
 	if v := process.SelectAttr("isExecutable"); v != nil {
 		b, _ := strconv.ParseBool(v.Value)
 		if b {
 			result.FlowStatus = 1
 		}
 	}
+	// process versionTag property
 	if version := process.SelectAttr("versionTag"); version != nil {
 		result.FlowVersion, err = util.StringToInt(version.Value)
 		if err != nil {
@@ -53,10 +65,11 @@ func (p *xmlParser) Parse(ctx context.Context, content []byte) (*parse.ParseResu
 		}
 	}
 
-	// 定义一个用于辅助的map，由节点id映射到noderesult
+
+	// 解析节点
+	// 定义一个用于辅助的 map，由节点 id 映射到 NodeResult
 	nodeMap := make(map[string]*parse.NodeResult)
 	// 遍历找到所有的节点，因为是解析一个树，所以先解析节点，再解析sequenceFlow部分
-	// 解析sequenceFlow部分时，nodeMap里面应该已经有对应的nodeId了
 	for _, element := range process.ChildElements() {
 		if element.Tag == "documentation" ||
 			element.Tag == "extensionElements" ||
@@ -72,21 +85,22 @@ func (p *xmlParser) Parse(ctx context.Context, content []byte) (*parse.ParseResu
 			return nil, err
 		}
 		nodeResult.CandidateExpressions = node.CandidateUsers
-		// yupengfei 2018-01-17 增加了form的解析
 		nodeResult.FormResult = node.FormResult
 		nodeResult.Properties = node.Properties
 		nodeMap[nodeResult.NodeID] = &nodeResult
 		// 如果节点是一个路由的话，需要特殊处理
 	}
 
+	// 解析sequenceFlow
+	// 解析sequenceFlow部分时，nodeMap里面应该已经有对应的nodeId了
 	for _, element := range process.ChildElements() {
 		if element.Tag == "sequenceFlow" {
-			sequenceFlow, _ := p.ParsesequenceFlow(element)
+			sFlow, _ := p.ParseSequenceFlow(element)
 			var routerResult parse.RouterResult
-			routerResult.Expression = sequenceFlow.Expression
-			routerResult.Explain = sequenceFlow.Explain
-			routerResult.TargetNodeID = sequenceFlow.TargetRef
-			if nodeResult, exist := nodeMap[sequenceFlow.SourceRef]; exist {
+			routerResult.Expression = sFlow.Expression
+			routerResult.Explain = sFlow.Explain
+			routerResult.TargetNodeID = sFlow.TargetRef
+			if nodeResult, exist := nodeMap[sFlow.SourceRef]; exist {
 				nodeResult.Routers = append(nodeResult.Routers, &routerResult)
 			}
 		}
@@ -156,18 +170,18 @@ func (p *xmlParser) ParseNode(element *etree.Element) (*nodeInfo, error) {
 	return &node, nil
 }
 
-func (p *xmlParser) ParsesequenceFlow(element *etree.Element) (*sequenceFlow, error) {
+func (p *xmlParser) ParseSequenceFlow(element *etree.Element) (*sequenceFlow, error) {
 	hasExpression := false
 	var seq sequenceFlow
 	seq.XMLName = element.Tag
 	seq.Code = element.SelectAttr("id").Value
 	seq.SourceRef = element.SelectAttr("sourceRef").Value
 	seq.TargetRef = element.SelectAttr("targetRef").Value
-	for _, element := range element.ChildElements() {
-		if element.Tag == "documentation" {
-			seq.Explain = element.Text()
-		} else if element.Tag == "conditionExpression" {
-			seq.Expression = element.Text()
+	for _, childEle := range element.ChildElements() {
+		if childEle.Tag == "documentation" {
+			seq.Explain = childEle.Text()
+		} else if childEle.Tag == "conditionExpression" {
+			seq.Expression = childEle.Text()
 			hasExpression = true
 		}
 	}
@@ -275,22 +289,3 @@ func (p *xmlParser) ParseEnumValues(element *etree.Element) ([]*parse.FieldOptio
 	return options, nil
 }
 
-type nodeInfo struct {
-	ProcessCode    string
-	Type           string
-	Code           string
-	Name           string
-	CandidateUsers []string
-	Properties     []*parse.PropertyResult
-	FormResult     *parse.NodeFormResult
-}
-
-type sequenceFlow struct {
-	ProcessCode string
-	XMLName     string
-	Code        string
-	SourceRef   string
-	TargetRef   string
-	Explain     string
-	Expression  string
-}

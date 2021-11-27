@@ -25,3 +25,9 @@ func Init(opts ...db.Option) {
 	}
 	engine = e
 }
+
+// Deploy 部署流程定义
+func Deploy(filePath string) (string, error) {
+	return engine.Deploy(filePath)
+}
+

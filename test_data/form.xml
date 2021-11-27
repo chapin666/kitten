@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:tns="http://bpmn.io/schema/bpmn" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:yaoqiang="http://bpmn.sourceforge.net" exporter="Camunda Modeler" exporterVersion="1.11.3" expressionLanguage="http://www.w3.org/1999/XPath" id="Definitions_1" name="" targetNamespace="http://bpmn.io/schema/bpmn" typeLanguage="http://www.w3.org/2001/XMLSchema" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL http://bpmn.sourceforge.net/schemas/BPMN20.xsd">
+    <bpmn:process id="Process_2" isClosed="false" isExecutable="true" processType="None">
+        <bpmn:extensionElements>
+            <yaoqiang:description/>
+            <yaoqiang:pageFormat height="841.8897637795276" imageableHeight="831.8897637795276" imageableWidth="588.1102362204724" imageableX="5.0" imageableY="5.0" orientation="0" width="598.1102362204724"/>
+            <yaoqiang:page background="#FFFFFF" horizontalCount="1" verticalCount="1"/>
+        </bpmn:extensionElements>
+        <bpmn:startEvent id="StartEvent_1" isInterrupting="true" parallelMultiple="false">
+            <bpmn:outgoing>SequenceFlow_1hpjl43</bpmn:outgoing>
+            <bpmn:outputSet/>
+        </bpmn:startEvent>
+        <bpmn:userTask camunda:formKey="key_test" completionQuantity="1" id="Task_1b1eha8" implementation="##unspecified" isForCompensation="false" startQuantity="1">
+            <bpmn:extensionElements>
+                <camunda:formData>
+                    <formData>
+                        <formData>
+                            <formData>
+                                <camunda:formField defaultValue="default_1" id="id_1" label="label_1" type="string">
+                                    <formField>
+                                        <formField>
+                                            <formField>
+                                                <camunda:properties>
+                                                    <properties>
+                                                        <properties>
+                                                            <properties>
+                                                                <camunda:property id="Property_1" value="Property_1_value"/>
+                                                                <camunda:property id="Property_2" value="Property_2_value"/>
+                                                            </properties>
+                                                        </properties>
+                                                    </properties>
+                                                </camunda:properties>
+                                                <camunda:validation>
+                                                    <validation>
+                                                        <validation>
+                                                            <validation>
+                                                                <camunda:constraint config="constraint_1_config" name="constraint_1"/>
+                                                                <camunda:constraint config="constraint_2_config" name="constraint_2"/>
+                                                            </validation>
+                                                        </validation>
+                                                    </validation>
+                                                </camunda:validation>
+                                            </formField>
+                                        </formField>
+                                    </formField>
+                                </camunda:formField>
+                                <camunda:formField id="FormField_2" label="FormField_2_label" type="long"/>
+                                <camunda:formField id="FormField_3" type="date"/>
+                                <camunda:formField defaultValue="FormField_4_label_default" id="FormField_4" label="FormField_4_label" type="enum">
+                                    <formField>
+                                        <formField>
+                                            <formField>
+                                                <camunda:value id="Value_1" name="Value_1_value"/>
+                                                <camunda:value id="Value_2" name="Value_2_value"/>
+                                            </formField>
+                                        </formField>
+                                    </formField>
+                                </camunda:formField>
+                                <camunda:formField id="FormField_5" type="boolean"/>
+                            </formData>
+                        </formData>
+                    </formData>
+                </camunda:formData>
+            </bpmn:extensionElements>
+            <bpmn:incoming>SequenceFlow_1hpjl43</bpmn:incoming>
+            <bpmn:outgoing>SequenceFlow_1oe5xbn</bpmn:outgoing>
+        </bpmn:userTask>
+        <bpmn:endEvent id="EndEvent_0h4y9rm">
+            <bpmn:incoming>SequenceFlow_1oe5xbn</bpmn:incoming>
+            <bpmn:inputSet/>
+        </bpmn:endEvent>
+        <bpmn:sequenceFlow id="SequenceFlow_1hpjl43" sourceRef="StartEvent_1" targetRef="Task_1b1eha8"/>
+        <bpmn:sequenceFlow id="SequenceFlow_1oe5xbn" sourceRef="Task_1b1eha8" targetRef="EndEvent_0h4y9rm"/>
+    </bpmn:process>
+    <bpmndi:BPMNDiagram id="Yaoqiang_Diagram-Process_1" name="Untitled Diagram" resolution="96.0">
+        <bpmndi:BPMNPlane bpmnElement="Process_1">
+            <bpmndi:BPMNShape bpmnElement="StartEvent_1" id="Yaoqiang-StartEvent_1">
+                <dc:Bounds height="32.0" width="32.0" x="272.0" y="368.0"/>
+                <bpmndi:BPMNLabel>
+                    <dc:Bounds height="18.96" width="6.0" x="287.0" y="404.5"/>
+                </bpmndi:BPMNLabel>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="Task_1b1eha8" id="Yaoqiang-Task_1b1eha8">
+                <dc:Bounds height="80.0" width="100.0" x="406.0" y="346.0"/>
+                <bpmndi:BPMNLabel>
+                    <dc:Bounds height="18.96" width="6.0" x="453.0" y="378.52"/>
+                </bpmndi:BPMNLabel>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="EndEvent_0h4y9rm" id="Yaoqiang-EndEvent_0h4y9rm">
+                <dc:Bounds height="32.0" width="32.0" x="638.0" y="368.0"/>
+                <bpmndi:BPMNLabel>
+                    <dc:Bounds height="18.96" width="6.0" x="653.0" y="408.0"/>
+                </bpmndi:BPMNLabel>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNEdge bpmnElement="SequenceFlow_1oe5xbn" id="Yaoqiang-SequenceFlow_1oe5xbn">
+                <di:waypoint x="506.0" y="386.0"/>
+                <di:waypoint x="638.0004882887008" y="384.0"/>
+                <bpmndi:BPMNLabel>
+                    <dc:Bounds height="18.96" width="6.0" x="569.0" y="375.52"/>
+                </bpmndi:BPMNLabel>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="SequenceFlow_1hpjl43" id="Yaoqiang-SequenceFlow_1hpjl43">
+                <di:waypoint x="303.9995117112992" y="384.0"/>
+                <di:waypoint x="406.0" y="386.0"/>
+                <bpmndi:BPMNLabel>
+                    <dc:Bounds height="18.96" width="6.0" x="352.0" y="375.52"/>
+                </bpmndi:BPMNLabel>
+            </bpmndi:BPMNEdge>
+        </bpmndi:BPMNPlane>
+    </bpmndi:BPMNDiagram>
+</definitions>
