@@ -5,13 +5,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"github.com/facebookgo/inject"
+	"github.com/pkg/errors"
 	"goworkflow/mapper"
 	"goworkflow/model"
 	"goworkflow/pkg/db"
-	"goworkflow/pkg/expression"
 	"goworkflow/pkg/parse"
 	"goworkflow/pkg/util"
 	"goworkflow/service"
+	"log"
 	"strconv"
 	"time"
 )
@@ -19,12 +20,12 @@ import (
 // Engine .
 type Engine struct {
 	parser  parse.Parser
-	execer  expression.Execer
+	execer  Execer
 	flowSvc *service.Flow
 }
 
 // 初始化
-func (e *Engine) Init(parser parse.Parser, execer expression.Execer, sqlDB *sql.DB, trace bool) (*Engine, error) {
+func (e *Engine) Init(parser parse.Parser, execer Execer, sqlDB *sql.DB, trace bool) (*Engine, error) {
 	var g inject.Graph
 	var flowSvc service.Flow
 
@@ -120,7 +121,8 @@ func (e *Engine) Deploy(filePath string) (string, error) {
 	return flow.RecordID, nil
 }
 
-// 创建节点操作
+
+// 解析node和form
 func (e *Engine) parseOperating(flow *model.Flow, nodeResults []*parse.NodeResult) (
 	*model.NodeOperating,
 	*model.FormOperating,
@@ -196,7 +198,7 @@ func (e *Engine) parseOperating(flow *model.Flow, nodeResults []*parse.NodeResul
 	return nodeOperating, formOperating
 }
 
-
+// 解析form
 func (e *Engine) parseFormOperating(
 	formOperating *model.FormOperating,
 	flow *model.Flow,
@@ -289,4 +291,102 @@ func (e *Engine) parseFormOperating(
 
 	formOperating.FormGroup = append(formOperating.FormGroup, form)
 	node.FormID = form.RecordID
+}
+
+
+// 启动流程
+func (e *Engine) StartFlow(
+	ctx context.Context,
+	flowCode string,
+	nodeCode string,
+	userID string,
+	inputData []byte,
+) (*model.HandleResult, error) {
+	nodeInstance, err := e.flowSvc.LaunchFlowInstance(flowCode, nodeCode, userID, inputData)
+	if err != nil {
+		return nil, err
+	}
+	if nodeInstance == nil {
+		return nil, errors.New("未找到流程信息")
+	}
+
+	return e.nextFlowHandle(ctx, nodeInstance.RecordID, userID, inputData)
+}
+
+func (e *Engine) nextFlowHandle(
+	ctx context.Context,
+	nodeInstanceID string,
+	userID string,
+	inputData []byte,
+) (*model.HandleResult, error) {
+	var result model.HandleResult
+
+	var onNextNode = OnNextNodeOption(func(
+		node *model.Node,
+		nodeInstance *model.NodeInstance,
+		nodeCandidates []*model.NodeCandidate,
+	) {
+		var cIDs []string
+		for _, nc := range nodeCandidates {
+			cIDs = append(cIDs, nc.CandidateID)
+		}
+		result.NextNodes = append(result.NextNodes, &model.NextNode{
+			Node:         node,
+			NodeInstance: nodeInstance,
+			CandidateIDs: cIDs,
+		})
+	})
+
+	var onFlowEnd = OnFlowEndOption(func(_ *model.FlowInstance) {
+		result.IsEnd = true
+	})
+
+	nr, err := new(NodeRouter).Init(ctx, e, nodeInstanceID, inputData, onNextNode, onFlowEnd)
+	if err != nil {
+		return nil, err
+	}
+
+	err = nr.Next(userID)
+	if err != nil {
+		return nil, err
+	}
+	result.FlowInstance = nr.GetFlowInstance()
+
+	if !result.IsEnd {
+		for _, item := range result.NextNodes {
+			prop, err := e.flowSvc.GetNodeProperty(item.Node.RecordID)
+			if err != nil {
+				return nil, err
+			}
+
+			// 检查节点是否设定定时器，如果设定则加入定时
+			if v := prop["timing"]; v != "" {
+				expired, err := strconv.Atoi(v)
+				if err == nil && expired > 0 {
+					nt := &model.NodeTiming{
+						NodeInstanceID: item.NodeInstance.RecordID,
+						Processor:      item.CandidateIDs[0],
+						Input:          prop["timing_input"],
+						ExpiredAt:      time.Now().Add(time.Duration(expired) * time.Minute).Unix(),
+						Created:        time.Now().Unix(),
+					}
+
+					if flag, ok := FromFlagContext(ctx); ok {
+						nt.Flag = flag
+					}
+
+					err = e.flowSvc.CreateNodeTiming(nt)
+					if err != nil {
+						e.errorf("%+v", err)
+					}
+				}
+			}
+		}
+	}
+
+	return &result, nil
+}
+
+func (e *Engine) errorf(format string, args ...interface{}) {
+	log.Printf(format, args...)
 }
