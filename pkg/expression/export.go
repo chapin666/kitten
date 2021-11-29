@@ -67,7 +67,6 @@ func ExecBool(ctx ExpContext, exp string) (bool, error) {
 
 // Bool 返回布尔值
 func Bool(d *OutData, err ...error) (bool, error) {
-
 	if len(err) > 1 && err[0] != nil {
 		return false, err[0]
 	}

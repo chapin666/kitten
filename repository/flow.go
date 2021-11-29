@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/pkg/errors"
-	"goworkflow/pkg/db"
 	"goworkflow/model"
+	"goworkflow/pkg/db"
 )
 
 // Flow 流程管理
@@ -52,7 +52,6 @@ func (f *Flow) CreateFlow(flow *model.Flow, nodes *model.NodeOperating, forms *m
 	return nil
 }
 
-
 // GetFlowByCode 根据编号查询流程数据
 func (f *Flow) GetFlowByCode(code string) (*model.Flow, error) {
 	query := fmt.Sprintf("SELECT * FROM %s WHERE flag=1 AND status=1 AND code=? AND deleted=0 "+
@@ -72,9 +71,9 @@ func (f *Flow) GetFlowByCode(code string) (*model.Flow, error) {
 
 // GetNodeByCode 根据节点编号获取流程节点
 func (f *Flow) GetNodeByCode(flowID, nodeCode string) (*model.Node, error) {
-	query := fmt.Sprintf("" +
-		"SELECT * FROM %s " +
-		"WHERE flow_id=? AND code=? AND deleted=0 " +
+	query := fmt.Sprintf(""+
+		"SELECT * FROM %s "+
+		"WHERE flow_id=? AND code=? AND deleted=0 "+
 		"ORDER BY order_num LIMIT 1", model.NodeTableName)
 
 	var node model.Node
@@ -103,6 +102,21 @@ func (f *Flow) GetNode(recordID string) (*model.Node, error) {
 	}
 
 	return &item, nil
+}
+
+// CheckNodeCandidate 检查节点候选人
+func (f *Flow) CheckNodeCandidate(nodeInstanceID, userID string) (bool, error) {
+	query := fmt.Sprintf("SELECT "+
+		"COUNT(*) "+
+		"FROM %s "+
+		"WHERE node_instance_id=? AND candidate_id=? AND deleted=0", model.NodeCandidateTableName)
+
+	n, err := f.DB.SelectInt(query, nodeInstanceID, userID)
+	if err != nil {
+		return false, errors.Wrapf(err, "检查节点候选人发生错误")
+	}
+
+	return n > 0, nil
 }
 
 // QueryNodeCandidates 查询节点候选人
@@ -157,7 +171,6 @@ func (f *Flow) QueryNodeAssignments(nodeID string) ([]*model.NodeAssignment, err
 	return items, nil
 }
 
-
 // CreateFlowInstance 创建流程实例
 func (f *Flow) CreateFlowInstance(flowInstance *model.FlowInstance, nodeInstances ...*model.NodeInstance) error {
 	tran, err := f.DB.Begin()
@@ -203,8 +216,8 @@ func (f *Flow) UpdateFlowInstance(recordID string, info map[string]interface{}) 
 
 // CheckFlowInstanceTodo 检查流程实例待办事项
 func (f *Flow) CheckFlowInstanceTodo(flowInstanceID string) (bool, error) {
-	query := fmt.Sprintf("SELECT " +
-		"count(*) FROM %s " +
+	query := fmt.Sprintf("SELECT "+
+		"count(*) FROM %s "+
 		"WHERE status=1 AND flow_instance_id=? AND deleted=0", model.NodeInstanceTableName)
 	n, err := f.DB.SelectInt(query, flowInstanceID)
 	if err != nil {
@@ -212,7 +225,6 @@ func (f *Flow) CheckFlowInstanceTodo(flowInstanceID string) (bool, error) {
 	}
 	return n > 0, nil
 }
-
 
 // CreateNodeInstance 创建流程节点实例
 func (f *Flow) CreateNodeInstance(nodeInstance *model.NodeInstance, nodeCandidates []*model.NodeCandidate) error {
@@ -256,7 +268,6 @@ func (f *Flow) UpdateNodeInstance(recordID string, info map[string]interface{}) 
 	}
 	return nil
 }
-
 
 // GetFlowInstance 获取流程实例
 func (f *Flow) GetFlowInstance(recordID string) (*model.FlowInstance, error) {
@@ -306,4 +317,72 @@ func (f *Flow) UpdateNodeTiming(nodeInstanceID string, info map[string]interface
 		return errors.Wrapf(err, "更新节点定时发生错误")
 	}
 	return nil
+}
+
+// QueryDoneIDs 查询已办理的流程实例ID列表
+func (f *Flow) QueryDoneIDs(flowCode, userID string) ([]string, error) {
+	query := fmt.Sprintf("SELECT " +
+		"record_id " +
+		"FROM %s " +
+		"WHERE deleted=0 " +
+		"AND flow_id IN (SELECT record_id FROM %s WHERE deleted=0 AND flag=1 AND code=?) " +
+		"AND record_id IN(SELECT flow_instance_id FROM %s WHERE deleted=0 AND status=2 AND processor=?)",
+		model.FlowInstanceTableName, model.FlowTableName, model.NodeInstanceTableName)
+
+	var items []*model.FlowInstance
+	_, err := f.DB.Select(&items, query, flowCode, userID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "查询已办理的流程数据发生错误")
+	}
+
+	ids := make([]string, len(items))
+	for i, item := range items {
+		ids[i] = item.RecordID
+	}
+
+	return ids, nil
+}
+
+// QueryTodo 查询用户的待办数据
+func (f *Flow) QueryTodo(typeCode string, flowCode string, userID string, limit int) ([]*model.FlowTodoResult, error) {
+	var args []interface{}
+	query := fmt.Sprintf(`SELECT
+			ni.record_id,
+			ni.flow_instance_id,
+			ni.input_data,
+			ni.node_id,
+			f.data 'form_data',
+			f.type_code 'form_type',
+			fi.launcher,
+			fi.launch_time,
+			n.code 'node_code',
+			n.name 'node_name',
+			fw.name 'flow_name'
+		FROM %s ni
+			JOIN %s fi ON ni.flow_instance_id = fi.record_id AND fi.deleted = ni.deleted
+			LEFT JOIN %s n ON ni.node_id = n.record_id AND n.deleted = ni.deleted
+			LEFT JOIN %s f ON n.form_id = f.record_id AND f.deleted = n.deleted
+			LEFT JOIN %s fw ON n.flow_id = fw.record_id AND fw.deleted=n.deleted
+		WHERE 
+			ni.deleted = 0 AND ni.status = 1 AND fi.status = 1 AND 
+			ni.record_id IN (SELECT node_instance_id FROM %s WHERE deleted = 0 AND candidate_id = ?)
+		`, model.NodeInstanceTableName, model.FlowInstanceTableName, model.NodeTableName,
+		model.FormTableName, model.FlowTableName, model.NodeCandidateTableName)
+
+	args = append(args, userID)
+	if typeCode != "" {
+		query = fmt.Sprintf("%s AND fi.flow_id IN (SELECT record_id FROM %s WHERE deleted=0 AND flag=1 AND type_code=?)", query, model.FlowTableName)
+		args = append(args, typeCode)
+	} else if flowCode != "" {
+		query = fmt.Sprintf("%s AND fi.flow_id IN (SELECT record_id FROM %s WHERE deleted=0 AND flag=1 AND code=?)", query, model.FlowTableName)
+		args = append(args, flowCode)
+	}
+	query = fmt.Sprintf("%s ORDER BY ni.id DESC LIMIT %d", query, limit)
+
+	var items []*model.FlowTodoResult
+	_, err := f.DB.Select(&items, query, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "查询用户的待办数据发生错误")
+	}
+	return items, nil
 }

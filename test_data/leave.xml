@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:tns="http://bpmn.io/schema/bpmn" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:yaoqiang="http://bpmn.sourceforge.net" exporter="Camunda Modeler" exporterVersion="1.11.3" expressionLanguage="http://www.w3.org/1999/XPath" id="Definitions_1" name="" targetNamespace="http://bpmn.io/schema/bpmn" typeLanguage="http://www.w3.org/2001/XMLSchema" xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL http://bpmn.sourceforge.net/schemas/BPMN20.xsd">
-    <bpmn:process camunda:versionTag="2" id="process_leave_test" isClosed="false" isExecutable="false" name="请假" processType="None">
+    <bpmn:process camunda:versionTag="3" id="process_leave_test" isClosed="false" isExecutable="false" name="请假" processType="None">
         <bpmn:extensionElements>
             <yaoqiang:description/>
             <yaoqiang:pageFormat height="841.8897637795276" imageableHeight="831.8897637795276" imageableWidth="588.1102362204724" imageableX="5.0" imageableY="5.0" orientation="0" width="598.1102362204724"/>
@@ -29,14 +29,12 @@
         </bpmn:userTask>
         <bpmn:sequenceFlow id="SequenceFlow_0yjkvst" name="审核不通过" sourceRef="node_gw_bzr" targetRef="node_user_apply">
             <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">
-                <![CDATA[
-        ]]>
+                <![CDATA[]]>
             </bpmn:conditionExpression>
         </bpmn:sequenceFlow>
         <bpmn:sequenceFlow id="SequenceFlow_1jaiwkb" name="通过且大于1天" sourceRef="node_gw_bzr" targetRef="node_user_fdy">
             <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">
-                <![CDATA[
-        ]]>
+                <![CDATA[]]>
             </bpmn:conditionExpression>
         </bpmn:sequenceFlow>
         <bpmn:exclusiveGateway gatewayDirection="Unspecified" id="node_gw_fdy">
@@ -48,14 +46,12 @@
         <bpmn:sequenceFlow id="SequenceFlow_14azrep" sourceRef="node_user_fdy" targetRef="node_gw_fdy"/>
         <bpmn:sequenceFlow id="SequenceFlow_015e8n6" name="审核不通过" sourceRef="node_gw_fdy" targetRef="node_user_apply">
             <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">
-                <![CDATA[
-        ]]>
+                <![CDATA[]]>
             </bpmn:conditionExpression>
         </bpmn:sequenceFlow>
         <bpmn:sequenceFlow id="SequenceFlow_0hl77f2" name="通过且大于3天" sourceRef="node_gw_fdy" targetRef="node_user_yld">
             <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">
-                <![CDATA[
-        ]]>
+                <![CDATA[]]>
             </bpmn:conditionExpression>
         </bpmn:sequenceFlow>
         <bpmn:userTask camunda:candidateUsers="[]string{input.yld}" completionQuantity="1" id="node_user_yld" implementation="##unspecified" isForCompensation="false" name="院领导审批" startQuantity="1">
@@ -70,26 +66,22 @@
         <bpmn:sequenceFlow id="SequenceFlow_08k91w9" sourceRef="node_user_yld" targetRef="node_gw_yld"/>
         <bpmn:sequenceFlow id="SequenceFlow_14eiifz" name="审核不通过" sourceRef="node_gw_yld" targetRef="node_user_apply">
             <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">
-                <![CDATA[
-        ]]>
+                <![CDATA[]]>
             </bpmn:conditionExpression>
         </bpmn:sequenceFlow>
         <bpmn:sequenceFlow id="SequenceFlow_1mqn03s" name="通过" sourceRef="node_gw_yld" targetRef="node_end">
             <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">
-                <![CDATA[
-        ]]>
+                <![CDATA[]]>
             </bpmn:conditionExpression>
         </bpmn:sequenceFlow>
         <bpmn:sequenceFlow id="SequenceFlow_1o26jet" name="通过且小于等于3天" sourceRef="node_gw_fdy" targetRef="node_end">
             <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">
-                <![CDATA[
-        ]]>
+                <![CDATA[]]>
             </bpmn:conditionExpression>
         </bpmn:sequenceFlow>
         <bpmn:sequenceFlow id="SequenceFlow_02sxys2" name="通过且小于等于1天" sourceRef="node_gw_bzr" targetRef="node_end">
             <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">
-                <![CDATA[
-        ]]>
+                <![CDATA[]]>
             </bpmn:conditionExpression>
         </bpmn:sequenceFlow>
         <bpmn:userTask camunda:candidateUsers="[]string{input.bzr}" completionQuantity="1" id="node_user_bzr" implementation="##unspecified" isForCompensation="false" name="班主任审批" startQuantity="1">

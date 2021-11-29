@@ -88,7 +88,6 @@ func (f *Flow) GetFlowInstance(recordID string) (*model.FlowInstance, error) {
 	return f.FlowModel.GetFlowInstance(recordID)
 }
 
-
 // GetNodeInstance 获取流程节点实例
 func (f *Flow) GetNodeInstance(recordID string) (*model.NodeInstance, error) {
 	return f.FlowModel.GetNodeInstance(recordID)
@@ -99,6 +98,13 @@ func (f *Flow) GetNodeInstance(recordID string) (*model.NodeInstance, error) {
 func (f *Flow) QueryNodeCandidates(nodeInstanceID string) ([]*model.NodeCandidate, error) {
 	return f.FlowModel.QueryNodeCandidates(nodeInstanceID)
 }
+
+
+// CheckNodeCandidate 检查节点候选人
+func (f *Flow) CheckNodeCandidate(nodeInstanceID, userID string) (bool, error) {
+	return f.FlowModel.CheckNodeCandidate(nodeInstanceID, userID)
+}
+
 
 // DoneNodeInstance 完成节点实例
 func (f *Flow) DoneNodeInstance(nodeInstanceID, processor string, outData []byte) error {
@@ -197,4 +203,22 @@ func (f *Flow) GetNodeProperty(nodeID string) (map[string]string, error) {
 func (f *Flow) CreateNodeTiming(item *model.NodeTiming) error {
 	item.ID = 0
 	return f.FlowModel.CreateNodeTiming(item)
+}
+
+// QueryTodo 查询用户的待办节点实例数据
+func (f *Flow) QueryTodo(typeCode string, flowCode string, userID string, limit int) ([]*model.FlowTodoResult, error) {
+	return f.FlowModel.QueryTodo(typeCode, flowCode, userID, limit)
+}
+
+// QueryDoneIDs 查询已办理的流程实例ID列表
+func (f *Flow) QueryDoneIDs(flowCode, userID string) ([]string, error) {
+	return f.FlowModel.QueryDoneIDs(flowCode, userID)
+}
+
+// StopFlowInstance 停止流程实例
+func (f *Flow) StopFlowInstance(flowInstanceID string) error {
+	info := map[string]interface{}{
+		"status": 9,
+	}
+	return f.FlowModel.UpdateFlowInstance(flowInstanceID, info)
 }

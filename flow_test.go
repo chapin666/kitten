@@ -2,6 +2,7 @@ package goworkflow
 
 import (
 	"context"
+	"goworkflow/model"
 	"goworkflow/pkg/db"
 	"os"
 	"testing"
@@ -28,14 +29,71 @@ func TestDeploy(t *testing.T) {
 func TestStartFlow(t *testing.T) {
 	var flowCode = "process_leave_test"
 	var nodeCode = "node_start"
-	var userID = "T001"
+	var userID = "F001"
 	var input = map[string]interface{}{
 		"day": 1,
-		"bzr": "T002",
+		"bzr": "F002",
 	}
 	result, err := StartFlow(context.Background(), flowCode, nodeCode, userID, input)
 	if err != nil {
 		t.Errorf("start flow define failed: %s", err.Error())
 	}
 	t.Log(result)
+}
+
+func TestQueryTodoFlows(t *testing.T) {
+	flowCode := "process_leave_test"
+	userID := "F002"
+	limit := 100
+	todos, err := QueryTodoFlows(flowCode, userID, limit)
+	if err != nil {
+		t.Fatalf("query flow failed: %s", err.Error())
+	}
+
+	for _, todo := range todos {
+		t.Logf("%#v", todo)
+	}
+}
+
+func TestQueryNodeCandidates(t *testing.T) {
+	nodeInstanceID := "164f4a70-6d60-4447-b332-bfa8af875676"
+	userIDs, err := QueryNodeCandidates(nodeInstanceID)
+	if err != nil {
+		t.Errorf("query node candidate failed: %s", err.Error())
+	}
+	t.Log(userIDs)
+}
+
+func TestHandleFlow(t *testing.T) {
+	nodeInstanceID := "164f4a70-6d60-4447-b332-bfa8af875676"
+	userID := "F002"
+	input := map[string]interface{}{
+		"action": "pass",
+	}
+	result, err := HandleFlow(context.Background(), nodeInstanceID, userID, input)
+	if err != nil {
+		t.Errorf("hanle flow failed: %s", err.Error())
+	}
+	t.Log(result)
+}
+
+func TestQueryDoneFlowIDs(t *testing.T) {
+	flowCode := "process_leave_test"
+	userID := "T002"
+	ids, err := QueryDoneFlowIDs(flowCode, userID)
+	if err != nil {
+		t.Errorf("query done flow ids failed: %s", err.Error())
+	}
+	t.Log(ids)
+}
+
+
+func TestStopFlowInstance(t *testing.T) {
+	nodeInstanceID := "4c66bea5-01fa-463f-8da5-bedb290e419e"
+	err := StopFlowInstance(nodeInstanceID, func(instance *model.FlowInstance) bool {
+		return true
+	})
+	if err != nil {
+		t.Errorf("hanle flow failed: %s", err.Error())
+	}
 }

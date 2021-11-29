@@ -127,7 +127,7 @@ func (r *NodeRouter) Next(processor string) error {
 			return err
 		}
 
-		// 不是开始也不是自动开始
+		// 不是开始事件也不是自动开始
 		if !(pNodeType == types.StartEvent && r.parent.opts.autoStart) {
 			// 通知下一节点实例事件
 			if fn := r.opts.onNextNode; fn != nil {
@@ -255,6 +255,7 @@ func (r *NodeRouter) addNextNodeInstances() ([]string, error) {
 				return nil, err
 			}
 			candidates = append(candidates, ss...)
+
 		}
 
 		instanceID, err := r.engine.flowSvc.CreateNodeInstance(
@@ -270,7 +271,6 @@ func (r *NodeRouter) addNextNodeInstances() ([]string, error) {
 	}
 	return nodeInstanceIDs, nil
 }
-
 
 func (r *NodeRouter) next(nodeInstanceID, processor string) (*NodeRouter, error) {
 	nextRouter, err := new(NodeRouter).Init(r.ctx, r.engine, nodeInstanceID, r.inputData)

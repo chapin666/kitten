@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"github.com/facebookgo/inject"
 	"github.com/pkg/errors"
 	"goworkflow/mapper"
@@ -120,7 +121,6 @@ func (e *Engine) Deploy(filePath string) (string, error) {
 	}
 	return flow.RecordID, nil
 }
-
 
 // 解析node和form
 func (e *Engine) parseOperating(flow *model.Flow, nodeResults []*parse.NodeResult) (
@@ -293,7 +293,6 @@ func (e *Engine) parseFormOperating(
 	node.FormID = form.RecordID
 }
 
-
 // 启动流程
 func (e *Engine) StartFlow(
 	ctx context.Context,
@@ -386,6 +385,80 @@ func (e *Engine) nextFlowHandle(
 
 	return &result, nil
 }
+
+// HandleFlow 处理流程节点
+// nodeInstanceID 节点实例内码
+// userID 处理人
+// inputData 输入数据
+func (e *Engine) HandleFlow(
+	ctx context.Context,
+	nodeInstanceID,
+	userID string,
+	inputData []byte,
+) (*model.HandleResult, error) {
+	// 检查是否是节点候选人
+	exists, err := e.flowSvc.CheckNodeCandidate(nodeInstanceID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, fmt.Errorf("无效的节点处理人")
+	}
+
+	nodeInstance, err := e.flowSvc.GetNodeInstance(nodeInstanceID)
+	if err != nil {
+		return nil, err
+	}
+	if nodeInstance == nil || nodeInstance.Status != 1 {
+		return nil, fmt.Errorf("无效的处理节点")
+	}
+
+	return e.nextFlowHandle(ctx, nodeInstanceID, userID, inputData)
+}
+
+
+// QueryTodoFlows 查询流程待办数据
+// flowCode 流程编号
+// userID 待办人
+func (e *Engine) QueryTodoFlows(flowCode string, userID string, limit int) ([]*model.FlowTodoResult, error) {
+	return e.flowSvc.QueryTodo("", flowCode, userID, limit)
+}
+
+// QueryNodeCandidates 查询节点实例的候选人ID列表
+func (e *Engine) QueryNodeCandidates(nodeInstanceID string) ([]string, error) {
+	candidates, err := e.flowSvc.QueryNodeCandidates(nodeInstanceID)
+	if err != nil {
+		return nil, err
+	}
+
+	ids := make([]string, len(candidates))
+
+	for i, c := range candidates {
+		ids[i] = c.CandidateID
+	}
+
+	return ids, nil
+}
+
+// QueryDoneFlowIDs 查询已办理的流程实例ID列表
+func (e *Engine) QueryDoneFlowIDs(flowCode, userID string) ([]string, error) {
+	return e.flowSvc.QueryDoneIDs(flowCode, userID)
+}
+
+// StopFlowInstance 停止流程实例
+func (e *Engine) StopFlowInstance(flowInstanceID string, allowStop func(*model.FlowInstance) bool) error {
+	flowInstance, err := e.flowSvc.GetFlowInstance(flowInstanceID)
+	if err != nil {
+		return err
+	}
+
+	if allowStop != nil && !allowStop(flowInstance) {
+		return errors.New("不允许停止流程")
+	}
+	return e.flowSvc.StopFlowInstance(flowInstanceID)
+}
+
+
 
 func (e *Engine) errorf(format string, args ...interface{}) {
 	log.Printf(format, args...)

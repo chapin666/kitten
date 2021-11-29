@@ -2,6 +2,7 @@ package goworkflow
 
 import (
 	"encoding/json"
+	"fmt"
 	"goworkflow/pkg/expression"
 )
 
@@ -37,6 +38,9 @@ func (*execer) ExecReturnStringSlice(exp, params []byte) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println(string(exp))
+	fmt.Println(m)
 
 	return expression.ExecParamSliceStr(string(exp), m)
 }
