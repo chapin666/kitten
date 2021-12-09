@@ -1,4 +1,4 @@
-package goworkflow
+package kitten
 
 import (
 	"context"

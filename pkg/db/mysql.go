@@ -7,7 +7,7 @@ import (
 	"github.com/go-gorp/gorp"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
-	"goworkflow/pkg/retry"
+	"kitten/pkg/retry"
 	"log"
 	"os"
 	"reflect"

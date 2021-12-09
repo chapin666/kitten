@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/pkg/errors"
-	"goworkflow/model"
-	"goworkflow/pkg/db"
+	"kitten/model"
+	"kitten/pkg/db"
 )
 
 // Flow 流程管理

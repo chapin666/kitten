@@ -1,6 +1,6 @@
 package xml
 
-import "goworkflow/pkg/parse"
+import "kitten/pkg/parse"
 
 type nodeInfo struct {
 	ProcessCode    string

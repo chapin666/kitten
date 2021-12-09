@@ -1,4 +1,4 @@
-package goworkflow
+package kitten
 
 import (
 	"context"
@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"github.com/facebookgo/inject"
 	"github.com/pkg/errors"
-	"goworkflow/mapper"
-	"goworkflow/model"
-	"goworkflow/pkg/db"
-	"goworkflow/pkg/parse"
-	"goworkflow/pkg/util"
-	"goworkflow/service"
+	"kitten/mapper"
+	"kitten/model"
+	"kitten/pkg/db"
+	"kitten/pkg/parse"
+	"kitten/pkg/util"
+	"kitten/service"
 	"log"
 	"strconv"
 	"time"

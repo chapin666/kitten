@@ -1,8 +1,8 @@
 package mapper
 
 import (
-	"goworkflow/model"
-	"goworkflow/pkg/db"
+	"kitten/model"
+	"kitten/pkg/db"
 )
 
 // FlowDBMap 注册流程相关的数据库映射

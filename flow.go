@@ -1,11 +1,11 @@
-package goworkflow
+package kitten
 
 import (
 	"context"
 	"encoding/json"
-	"goworkflow/model"
-	"goworkflow/pkg/db"
-	"goworkflow/pkg/parse/xml"
+	"kitten/model"
+	"kitten/pkg/db"
+	"kitten/pkg/parse/xml"
 )
 
 var (

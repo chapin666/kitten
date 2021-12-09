@@ -2,9 +2,9 @@ package service
 
 import (
 	"fmt"
-	"goworkflow/pkg/util"
-	"goworkflow/repository"
-	"goworkflow/model"
+	"kitten/pkg/util"
+	"kitten/repository"
+	"kitten/model"
 	"sync"
 	"time"
 )

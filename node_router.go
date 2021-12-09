@@ -1,11 +1,11 @@
-package goworkflow
+package kitten
 
 import (
 	"context"
 	"encoding/json"
 	"github.com/pkg/errors"
-	"goworkflow/model"
-	"goworkflow/pkg/types"
+	"kitten/model"
+	"kitten/pkg/types"
 )
 
 // 定义错误

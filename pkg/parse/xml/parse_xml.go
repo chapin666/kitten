@@ -4,9 +4,9 @@ import (
 	"context"
 	"strconv"
 
-	"goworkflow/pkg/parse"
-	"goworkflow/pkg/types"
-	"goworkflow/pkg/util"
+	"kitten/pkg/parse"
+	"kitten/pkg/types"
+	"kitten/pkg/util"
 
 	"github.com/beevik/etree"
 )

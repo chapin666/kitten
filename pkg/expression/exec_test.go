@@ -2,14 +2,14 @@ package expression_test
 
 import (
 	"database/sql"
-	"goworkflow/pkg/expression/ext"
+	"kitten/pkg/expression/ext"
 	"log"
 	"os"
 	"reflect"
 	"testing"
 
 	_ "github.com/go-sql-driver/mysql"
-	"goworkflow/pkg/expression"
+	"kitten/pkg/expression"
 )
 
 func TestMain(m *testing.M) {

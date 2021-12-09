@@ -1,9 +1,9 @@
-package goworkflow
+package kitten
 
 import (
 	"context"
-	"goworkflow/model"
-	"goworkflow/pkg/db"
+	"kitten/model"
+	"kitten/pkg/db"
 	"os"
 	"testing"
 )
