@@ -11,6 +11,7 @@ import (
 	"kitten/model"
 	"kitten/pkg/db"
 	"kitten/pkg/parse"
+	"kitten/pkg/parse/xml"
 	"kitten/pkg/util"
 	"kitten/service"
 	"log"
@@ -26,33 +27,31 @@ type Engine struct {
 }
 
 // 初始化
-func (e *Engine) Init(parser parse.Parser, execer Execer, sqlDB *sql.DB, trace bool) (*Engine, error) {
+func New(sqlDB *sql.DB, trace bool) (*Engine, error) {
 	var g inject.Graph
 	var flowSvc service.Flow
 
+
 	dbInstance := db.NewMySQLWithDB(sqlDB, trace)
 
-	err := g.Provide(&inject.Object{Value: dbInstance}, &inject.Object{Value: &flowSvc})
-	if err != nil {
-		return e, err
+	if err := g.Provide(&inject.Object{Value: dbInstance}, &inject.Object{Value: &flowSvc}); err != nil {
+		return nil, err
 	}
 
-	err = g.Populate()
-	if err != nil {
-		return e, err
+	if err := g.Populate(); err != nil {
+		return nil, err
 	}
 
 	mapper.FlowDBMap(dbInstance)
-	err = dbInstance.CreateTablesIfNotExists()
-	if err != nil {
-		return e, err
+	if err := dbInstance.CreateTablesIfNotExists(); err != nil {
+		return nil, err
 	}
 
-	e.parser = parser
-	e.execer = execer
-	e.flowSvc = &flowSvc
-
-	return e, nil
+	return &Engine{
+		parser:  xml.NewXMLParser(),
+		execer:  NewQLangExecer(),
+		flowSvc: &flowSvc,
+	}, nil
 }
 
 // 部署
@@ -416,7 +415,6 @@ func (e *Engine) HandleFlow(
 	return e.nextFlowHandle(ctx, nodeInstanceID, userID, inputData)
 }
 
-
 // QueryTodoFlows 查询流程待办数据
 // flowCode 流程编号
 // userID 待办人
@@ -457,8 +455,6 @@ func (e *Engine) StopFlowInstance(flowInstanceID string, allowStop func(*model.F
 	}
 	return e.flowSvc.StopFlowInstance(flowInstanceID)
 }
-
-
 
 func (e *Engine) errorf(format string, args ...interface{}) {
 	log.Printf(format, args...)
