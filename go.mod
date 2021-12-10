@@ -1,4 +1,4 @@
-module kitten
+module github.com/chapin666/kitten
 
 go 1.15
 
