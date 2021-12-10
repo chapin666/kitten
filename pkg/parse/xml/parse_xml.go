@@ -4,9 +4,9 @@ import (
 	"context"
 	"strconv"
 
-	"kitten/pkg/parse"
-	"kitten/pkg/types"
-	"kitten/pkg/util"
+	"github.com/chapin666/kitten/pkg/parse"
+	"github.com/chapin666/kitten/pkg/types"
+	"github.com/chapin666/kitten/pkg/util"
 
 	"github.com/beevik/etree"
 )

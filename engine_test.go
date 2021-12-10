@@ -3,8 +3,8 @@ package kitten
 import (
 	"context"
 	"encoding/json"
-	"kitten/model"
-	"kitten/pkg/db"
+	"github.com/chapin666/kitten/model"
+	"github.com/chapin666/kitten/pkg/db"
 	"os"
 	"testing"
 )

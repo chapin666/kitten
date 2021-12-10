@@ -3,9 +3,9 @@ package kitten
 import (
 	"context"
 	"encoding/json"
-	"github.com/pkg/errors"
-	"kitten/model"
-	"kitten/pkg/types"
+	"errors"
+	"github.com/chapin666/kitten/model"
+	"github.com/chapin666/kitten/pkg/types"
 )
 
 // 定义错误

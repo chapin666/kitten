@@ -2,7 +2,7 @@ package parse
 
 import (
 	"context"
-	"kitten/pkg/types"
+	"github.com/chapin666/kitten/pkg/types"
 )
 
 // Parser 流程数据解析器

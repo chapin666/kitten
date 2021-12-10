@@ -1,8 +1,8 @@
 package mapper
 
 import (
-	"kitten/model"
-	"kitten/pkg/db"
+	"github.com/chapin666/kitten/model"
+	"github.com/chapin666/kitten/pkg/db"
 )
 
 // FlowDBMap 注册流程相关的数据库映射

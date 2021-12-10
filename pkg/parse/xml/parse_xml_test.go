@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"kitten/pkg/util"
+	"github.com/chapin666/kitten/pkg/util"
 	"testing"
 )
 

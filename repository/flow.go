@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/pkg/errors"
-	"kitten/model"
-	"kitten/pkg/db"
+	"github.com/chapin666/kitten/model"
+	"github.com/chapin666/kitten/pkg/db"
 )
 
 // Flow 流程管理

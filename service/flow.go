@@ -2,9 +2,9 @@ package service
 
 import (
 	"fmt"
-	"kitten/pkg/util"
-	"kitten/repository"
-	"kitten/model"
+	"github.com/chapin666/kitten/pkg/util"
+	"github.com/chapin666/kitten/repository"
+	"github.com/chapin666/kitten/model"
 	"sync"
 	"time"
 )

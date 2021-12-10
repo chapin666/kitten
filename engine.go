@@ -5,15 +5,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/chapin666/kitten/mapper"
+	"github.com/chapin666/kitten/model"
+	"github.com/chapin666/kitten/pkg/db"
+	"github.com/chapin666/kitten/pkg/parse"
+	"github.com/chapin666/kitten/pkg/parse/xml"
+	"github.com/chapin666/kitten/pkg/util"
+	"github.com/chapin666/kitten/service"
 	"github.com/facebookgo/inject"
 	"github.com/pkg/errors"
-	"kitten/mapper"
-	"kitten/model"
-	"kitten/pkg/db"
-	"kitten/pkg/parse"
-	"kitten/pkg/parse/xml"
-	"kitten/pkg/util"
-	"kitten/service"
 	"log"
 	"strconv"
 	"time"
@@ -30,7 +30,6 @@ type Engine struct {
 func New(sqlDB *sql.DB, trace bool) (*Engine, error) {
 	var g inject.Graph
 	var flowSvc service.Flow
-
 
 	dbInstance := db.NewMySQLWithDB(sqlDB, trace)
 

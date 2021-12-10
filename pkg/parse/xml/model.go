@@ -1,6 +1,6 @@
 package xml
 
-import "kitten/pkg/parse"
+import "github.com/chapin666/kitten/pkg/parse"
 
 type nodeInfo struct {
 	ProcessCode    string

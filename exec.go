@@ -3,7 +3,7 @@ package kitten
 import (
 	"encoding/json"
 	"fmt"
-	"kitten/pkg/expression"
+	"github.com/chapin666/kitten/pkg/expression"
 )
 
 // Execer 表达式执行器
