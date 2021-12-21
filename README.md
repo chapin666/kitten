@@ -1,4 +1,4 @@
-# github.com/chapin666/kitten
+# kitten
 
 ***A tiny open source workflow engine written in Go***
 
