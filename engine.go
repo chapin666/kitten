@@ -2,7 +2,6 @@ package kitten
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/chapin666/kitten/mapper"
@@ -27,10 +26,14 @@ type Engine struct {
 }
 
 // 初始化
-func New(sqlDB *sql.DB, trace bool) (*Engine, error) {
+func New(mysqlDNS string, trace bool) (*Engine, error) {
 	var g inject.Graph
 	var flowSvc service.Flow
 
+	sqlDB, trace, err := db.NewMySQL(db.SetDSN(mysqlDNS), db.SetTrace(trace))
+	if err != nil {
+		return nil, err
+	}
 	dbInstance := db.NewMySQLWithDB(sqlDB, trace)
 
 	if err := g.Provide(&inject.Object{Value: dbInstance}, &inject.Object{Value: &flowSvc}); err != nil {

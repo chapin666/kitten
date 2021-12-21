@@ -4,23 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/chapin666/kitten/model"
-	"github.com/chapin666/kitten/pkg/db"
 	"os"
 	"testing"
 )
 
 var (
-	client      *Engine
-	dnsOption   = db.SetDSN("root@tcp(127.0.0.1:3306)/flow_test?charset=utf8")
-	traceOption = db.SetTrace(true)
+	client   *Engine
+	err      error
+	mysqlDNS = "root@tcp(127.0.0.1:3306)/flow_test?charset=utf8"
 )
 
 func TestMain(m *testing.M) {
-	sqlDB, trace, err := db.NewMySQL(dnsOption, traceOption)
-	if err != nil {
-		panic(err)
-	}
-	client, err = New(sqlDB, trace)
+	client, err = New(mysqlDNS, true)
 	if err != nil {
 		panic(err)
 	}
