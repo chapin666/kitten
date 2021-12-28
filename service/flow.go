@@ -23,6 +23,12 @@ func (f *Flow) CreateFlow(flow *model.Flow, nodes *model.NodeOperating, forms *m
 	return f.FlowModel.CreateFlow(flow, nodes, forms)
 }
 
+
+// QueryAllFlowPage 查询流程分页数据
+func (f *Flow) QueryAllFlowPage(params model.FlowQueryParam, pageIndex, pageSize uint) (int64, []*model.FlowQueryResult, error) {
+	return f.FlowModel.QueryAllFlowPage(params, pageIndex, pageSize)
+}
+
 // GetFlowByCode 根据编号查询流程数据
 func (f *Flow) GetFlowByCode(code string) (*model.Flow, error) {
 	return f.FlowModel.GetFlowByCode(code)
@@ -75,7 +81,6 @@ func (f *Flow) LaunchFlowInstance(flowCode, nodeCode, launcher string, inputData
 
 	return nodeInstance, nil
 }
-
 
 
 // GetNode 获取流程节点

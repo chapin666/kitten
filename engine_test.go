@@ -30,6 +30,20 @@ func TestDeploy(t *testing.T) {
 	t.Log(result)
 }
 
+func TestQueryAll(t *testing.T) {
+	params := model.FlowQueryParam{
+	}
+	total, result, err := client.QueryAllFlowPage(params, 1, 10)
+	if err != nil {
+		t.Errorf("query all flow page failed: %s", err.Error())
+	}
+
+	t.Logf("total=%d", total)
+	for _, item := range result {
+		t.Logf("%#v", item)
+	}
+}
+
 func TestStartFlow(t *testing.T) {
 	flowCode := "process_leave_test"
 	nodeCode := "node_start"

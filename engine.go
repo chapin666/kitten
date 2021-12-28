@@ -417,6 +417,15 @@ func (e *Engine) HandleFlow(
 	return e.nextFlowHandle(ctx, nodeInstanceID, userID, inputData)
 }
 
+// QueryAllFlowPage 查询流程分页数据
+func (e *Engine) QueryAllFlowPage(params model.FlowQueryParam, pageIndex, pageSize uint) (
+	int64,
+	[]*model.FlowQueryResult,
+	error,
+) {
+	return e.flowSvc.QueryAllFlowPage(params, pageIndex, pageSize)
+}
+
 // QueryTodoFlows 查询流程待办数据
 // flowCode 流程编号
 // userID 待办人

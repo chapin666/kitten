@@ -3,9 +3,9 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"github.com/pkg/errors"
 	"github.com/chapin666/kitten/model"
 	"github.com/chapin666/kitten/pkg/db"
+	"github.com/pkg/errors"
 )
 
 // Flow 流程管理
@@ -50,6 +50,58 @@ func (f *Flow) CreateFlow(flow *model.Flow, nodes *model.NodeOperating, forms *m
 		return errors.Wrapf(err, "创建流程基础数据提交事物发生错误")
 	}
 	return nil
+}
+
+// QueryAllFlowPage 查询流程分页数据
+func (f *Flow) QueryAllFlowPage(params model.FlowQueryParam, pageIndex, pageSize uint) (
+	int64,
+	[]*model.FlowQueryResult,
+	error,
+) {
+	var (
+		where = "WHERE deleted=0 AND flag=1"
+		args  []interface{}
+	)
+
+	if code := params.Code; code != "" {
+		where = fmt.Sprintf("%s AND code LIKE ?", where)
+		args = append(args, "%"+code+"%")
+	}
+
+	if name := params.Name; name != "" {
+		where = fmt.Sprintf("%s AND name LIKE ?", where)
+		args = append(args, "%"+name+"%")
+	}
+
+	if v := params.TypeCode; v != "" {
+		where = fmt.Sprintf("%s AND type_code=?", where)
+		args = append(args, v)
+	}
+
+	if v := params.Status; v > 0 {
+		where = fmt.Sprintf("%s AND status=?", where)
+		args = append(args, v)
+	}
+
+	n, err := f.DB.SelectInt(fmt.Sprintf("SELECT count(*) FROM %s %s", model.FlowTableName, where), args...)
+	if err != nil {
+		return 0, nil, errors.Wrapf(err, "查询分页数据发生错误")
+	} else if n == 0 {
+		return 0, nil, nil
+	}
+
+	query := fmt.Sprintf("SELECT id,record_id,created,code,name,version FROM %s %s ORDER BY id DESC", model.FlowTableName, where)
+	if pageIndex > 0 && pageSize > 0 {
+		query = fmt.Sprintf("%s limit %d,%d", query, (pageIndex-1)*pageSize, pageSize)
+	}
+
+	var items []*model.FlowQueryResult
+	_, err = f.DB.Select(&items, query, args...)
+	if err != nil {
+		return 0, nil, errors.Wrapf(err, "查询分页数据发生错误")
+	}
+
+	return n, items, err
 }
 
 // GetFlowByCode 根据编号查询流程数据
@@ -321,11 +373,11 @@ func (f *Flow) UpdateNodeTiming(nodeInstanceID string, info map[string]interface
 
 // QueryDoneIDs 查询已办理的流程实例ID列表
 func (f *Flow) QueryDoneIDs(flowCode, userID string) ([]string, error) {
-	query := fmt.Sprintf("SELECT " +
-		"record_id " +
-		"FROM %s " +
-		"WHERE deleted=0 " +
-		"AND flow_id IN (SELECT record_id FROM %s WHERE deleted=0 AND flag=1 AND code=?) " +
+	query := fmt.Sprintf("SELECT "+
+		"record_id "+
+		"FROM %s "+
+		"WHERE deleted=0 "+
+		"AND flow_id IN (SELECT record_id FROM %s WHERE deleted=0 AND flag=1 AND code=?) "+
 		"AND record_id IN(SELECT flow_instance_id FROM %s WHERE deleted=0 AND status=2 AND processor=?)",
 		model.FlowInstanceTableName, model.FlowTableName, model.NodeInstanceTableName)
 
