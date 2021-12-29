@@ -31,7 +31,7 @@ func (f *Flow) QueryAllFlowPage(params model.FlowQueryParam, pageIndex, pageSize
 
 // GetFlow 获取流程数据
 func (f *Flow) GetFlow(recordID string) (*model.Flow, error) {
-	return f.FlowModel.GetFlowByCode(recordID)
+	return f.FlowModel.GetFlow(recordID)
 }
 
 // GetFlowByCode 根据编号查询流程数据
