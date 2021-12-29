@@ -44,6 +44,15 @@ func TestQueryAll(t *testing.T) {
 	}
 }
 
+func TestGetFlow(t *testing.T) {
+	flow, err := client.GetFlow("7099d58c-8df2-4781-bace-8a439d3bae9c")
+	if err != nil {
+		t.Errorf("get flow  failed: %s", err.Error())
+	}
+
+	t.Logf("%#v", flow)
+}
+
 func TestStartFlow(t *testing.T) {
 	flowCode := "process_leave_test"
 	nodeCode := "node_start"
