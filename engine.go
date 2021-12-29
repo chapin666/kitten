@@ -294,6 +294,65 @@ func (e *Engine) parseFormOperating(
 	node.FormID = form.RecordID
 }
 
+// SaveFlow 保存流程
+func (e *Engine) SaveFlow(data []byte) (string, error) {
+
+	result, err := e.parser.Parse(context.Background(), data)
+	if err != nil {
+		return "", err
+	}
+
+	// 检查流程是否存在，如果存在则检查版本号是否一致，如果不一致则创建新流程
+	oldFlow, err := e.flowSvc.GetFlowByCode(result.FlowID)
+	if err != nil {
+		return "", err
+	} else if oldFlow != nil {
+		if result.FlowVersion <= oldFlow.Version {
+			return oldFlow.RecordID, nil
+		}
+	}
+
+	flow := &model.Flow{
+		RecordID: util.UUID(),
+		Code:     result.FlowID,
+		Name:     result.FlowName,
+		Version:  result.FlowVersion,
+		XML:      string(data),
+		Status:   result.FlowStatus,
+		Created:  time.Now().Unix(),
+	}
+	nodeOperating, formOperating := e.parseOperating(flow, result.Nodes)
+
+	// 解析节点表单数据
+	for _, node := range result.Nodes {
+		// 查找表单ID不为空并且不包含表单字段的节点
+		if node.FormResult != nil && node.FormResult.ID != "" && len(node.FormResult.Fields) == 0 {
+			// 查找表单ID
+			var formID string
+			for _, form := range formOperating.FormGroup {
+				if form.Code == node.FormResult.ID {
+					formID = form.RecordID
+					break
+				}
+			}
+			if formID != "" {
+				for i, ns := range nodeOperating.NodeGroup {
+					if ns.Code == node.NodeID {
+						nodeOperating.NodeGroup[i].FormID = formID
+						break
+					}
+				}
+			}
+		}
+	}
+
+	err = e.flowSvc.CreateFlow(flow, nodeOperating, formOperating)
+	if err != nil {
+		return "", err
+	}
+	return flow.RecordID, nil
+}
+
 // 启动流程
 func (e *Engine) StartFlow(
 	ctx context.Context,
@@ -426,6 +485,11 @@ func (e *Engine) QueryAllFlowPage(params model.FlowQueryParam, pageIndex, pageSi
 	return e.flowSvc.QueryAllFlowPage(params, pageIndex, pageSize)
 }
 
+// GetFlow 获取流程数据
+func (e *Engine) GetFlow(recordID string) (*model.Flow, error) {
+	return e.flowSvc.GetFlow(recordID)
+}
+
 // QueryTodoFlows 查询流程待办数据
 // flowCode 流程编号
 // userID 待办人
@@ -466,6 +530,12 @@ func (e *Engine) StopFlowInstance(flowInstanceID string, allowStop func(*model.F
 	}
 	return e.flowSvc.StopFlowInstance(flowInstanceID)
 }
+
+// DeleteFlow 删除流程
+func (e *Engine) DeleteFlow(flowID string) error {
+	return e.flowSvc.DeleteFlow(flowID)
+}
+
 
 func (e *Engine) errorf(format string, args ...interface{}) {
 	log.Printf(format, args...)

@@ -6,6 +6,7 @@ import (
 	"github.com/chapin666/kitten/model"
 	"github.com/chapin666/kitten/pkg/db"
 	"github.com/pkg/errors"
+	"time"
 )
 
 // Flow 流程管理
@@ -102,6 +103,21 @@ func (f *Flow) QueryAllFlowPage(params model.FlowQueryParam, pageIndex, pageSize
 	}
 
 	return n, items, err
+}
+
+// GetFlow 获取流程数据
+func (f *Flow) GetFlow(recordID string) (*model.Flow, error) {
+	query := fmt.Sprintf("SELECT * FROM %s WHERE deleted=0 AND record_id=? LIMIT 1", model.FlowTableName)
+
+	var flow model.Flow
+	err := f.DB.SelectOne(&flow, query, recordID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, errors.Wrapf(err, "获取流程数据发生错误")
+	}
+	return &flow, nil
 }
 
 // GetFlowByCode 根据编号查询流程数据
@@ -437,4 +453,55 @@ func (f *Flow) QueryTodo(typeCode string, flowCode string, userID string, limit 
 		return nil, errors.Wrapf(err, "查询用户的待办数据发生错误")
 	}
 	return items, nil
+}
+
+// DeleteFlow 删除流程
+func (f *Flow) DeleteFlow(flowID string) error {
+	tran, err := f.DB.Begin()
+	if err != nil {
+		return errors.Wrapf(err, "删除流程开启事物发生错误")
+	}
+
+	ctimeUnix := time.Now().Unix()
+	_, err = tran.Exec(fmt.Sprintf("UPDATE %s SET deleted=? WHERE deleted=0 AND record_id=?", model.FlowTableName), ctimeUnix, flowID)
+	if err != nil {
+		_ = tran.Rollback()
+		return errors.Wrapf(err, "删除流程发生错误")
+	}
+
+	_, err = tran.Exec(fmt.Sprintf("UPDATE %s SET deleted=? WHERE deleted=0 AND source_node_id IN(SELECT record_id FROM %s WHERE deleted=0 AND flow_id=?)", model.NodeRouterTableName, model.NodeTableName), ctimeUnix, flowID)
+	if err != nil {
+		_ = tran.Rollback()
+		return errors.Wrapf(err, "删除流程节点路由发生错误")
+	}
+
+	_, err = tran.Exec(fmt.Sprintf("UPDATE %s SET deleted=? WHERE deleted=0 AND node_id IN(SELECT record_id FROM %s WHERE deleted=0 AND flow_id=?)", model.NodeAssignmentTableName, model.NodeTableName), ctimeUnix, flowID)
+	if err != nil {
+		_ = tran.Rollback()
+		return errors.Wrapf(err, "删除流程节点指派发生错误")
+	}
+
+	_, err = tran.Exec(fmt.Sprintf("UPDATE %s SET deleted=? WHERE deleted=0 AND node_id IN(SELECT record_id FROM %s WHERE deleted=0 AND flow_id=?)", model.NodePropertyTableName, model.NodeTableName), ctimeUnix, flowID)
+	if err != nil {
+		_ = tran.Rollback()
+		return errors.Wrapf(err, "删除流程节点属性发生错误")
+	}
+
+	_, err = tran.Exec(fmt.Sprintf("UPDATE %s SET deleted=? WHERE deleted=0 AND flow_id=?", model.NodeTableName), ctimeUnix, flowID)
+	if err != nil {
+		_ = tran.Rollback()
+		return errors.Wrapf(err, "删除流程节点发生错误")
+	}
+
+	_, err = tran.Exec(fmt.Sprintf("UPDATE %s SET deleted=? WHERE deleted=0 AND flow_id=?", model.FormTableName), ctimeUnix, flowID)
+	if err != nil {
+		_ = tran.Rollback()
+		return errors.Wrapf(err, "删除流程表单发生错误")
+	}
+
+	err = tran.Commit()
+	if err != nil {
+		return errors.Wrapf(err, "删除流程提交事物发生错误")
+	}
+	return nil
 }

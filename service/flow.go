@@ -2,9 +2,9 @@ package service
 
 import (
 	"fmt"
+	"github.com/chapin666/kitten/model"
 	"github.com/chapin666/kitten/pkg/util"
 	"github.com/chapin666/kitten/repository"
-	"github.com/chapin666/kitten/model"
 	"sync"
 	"time"
 )
@@ -27,6 +27,11 @@ func (f *Flow) CreateFlow(flow *model.Flow, nodes *model.NodeOperating, forms *m
 // QueryAllFlowPage 查询流程分页数据
 func (f *Flow) QueryAllFlowPage(params model.FlowQueryParam, pageIndex, pageSize uint) (int64, []*model.FlowQueryResult, error) {
 	return f.FlowModel.QueryAllFlowPage(params, pageIndex, pageSize)
+}
+
+// GetFlow 获取流程数据
+func (f *Flow) GetFlow(recordID string) (*model.Flow, error) {
+	return f.FlowModel.GetFlowByCode(recordID)
 }
 
 // GetFlowByCode 根据编号查询流程数据
@@ -226,4 +231,9 @@ func (f *Flow) StopFlowInstance(flowInstanceID string) error {
 		"status": 9,
 	}
 	return f.FlowModel.UpdateFlowInstance(flowInstanceID, info)
+}
+
+// DeleteFlow 删除流程
+func (f *Flow) DeleteFlow(flowID string) error {
+	return f.FlowModel.DeleteFlow(flowID)
 }
